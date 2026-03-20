@@ -1,0 +1,20 @@
+{
+  "name": "tempo-love",
+  "version": "1.0.0",
+  "description": "A lightweight two-user realtime rhythm room.",
+  "main": "server/index.js",
+  "scripts": {
+    "dev:server": "node server/index.js",
+    "dev:client": "vite frontend --host",
+    "build": "vite build frontend",
+    "preview": "vite preview frontend --host"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "vite": "^8.0.1",
+    "ws": "^8.19.0"
+  }
+}

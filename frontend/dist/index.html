@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tempo Love</title>
+    <script type="module" crossorigin src="/assets/index-Bwf7Kw2r.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-oDcsNfL0.css">
+  </head>
+  <body>
+    <main class="app">
+      <section class="card">
+        <h1>Tempo Love</h1>
+        <p class="subtitle">A tiny room for shared rhythm.</p>
+
+        <form id="join-form" class="join-row">
+          <input id="room-input" placeholder="room name" maxlength="24" required />
+          <button type="submit">Join</button>
+        </form>
+
+        <div class="mood-row">
+          <label for="mood-select">Mood</label>
+          <select id="mood-select">
+            <option value="soft">Soft</option>
+            <option value="dream">Dream</option>
+            <option value="play">Play</option>
+          </select>
+          <div class="energy" aria-label="energy level">
+            <div id="energy-fill" class="energy-fill"></div>
+          </div>
+        </div>
+
+        <div class="status-wrap">
+          <p id="status">Not connected yet.</p>
+          <p id="meta"></p>
+          <p id="reaction" class="reaction">Press 1 / 2 / 3 to play.</p>
+        </div>
+
+        <div class="pad-grid">
+          <button class="pad" data-sound="pulse">Pulse <span>1</span></button>
+          <button class="pad" data-sound="glow">Glow <span>2</span></button>
+          <button class="pad" data-sound="rain">Rain <span>3</span></button>
+        </div>
+
+        <div class="loop-row">
+          <button class="loop-toggle" data-loop="pulse">Loop Pulse</button>
+          <button class="loop-toggle" data-loop="glow">Loop Glow</button>
+          <button class="loop-toggle" data-loop="rain">Loop Rain</button>
+        </div>
+
+        <div class="pad-grid extra-pad-grid">
+          <button class="pad alt" data-sound="bloom">Bloom <span>4</span></button>
+          <button class="pad alt" data-sound="drift">Drift <span>5</span></button>
+          <button class="pad alt" data-sound="spark">Spark <span>6</span></button>
+        </div>
+
+        <div class="beat-wrap" aria-hidden="true">
+          <div id="beat-orb" class="beat-orb"></div>
+        </div>
+        <div id="spark-layer" class="spark-layer" aria-hidden="true"></div>
+      </section>
+    </main>
+
+  </body>
+</html>
