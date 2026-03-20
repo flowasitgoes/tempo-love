@@ -38,6 +38,7 @@ body {
   background: var(--card);
   border: 1px solid var(--stroke);
   box-shadow: 0 12px 42px rgba(56, 61, 91, 0.14);
+  position: relative;
 }
 
 h1 {
@@ -286,6 +287,80 @@ button {
 
 body.pulse-flash {
   background: radial-gradient(circle at top, #f7f5fb, #e4e8f4);
+}
+
+.love-overlay {
+  margin-top: 6px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+}
+
+.love-overlay.playing {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 120ms ease, transform 220ms ease;
+}
+
+.love-svg {
+  width: 160px;
+  height: 92px;
+}
+
+.love-ribbon-path {
+  fill: none;
+  stroke: rgba(172, 104, 214, 0.75);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 260;
+  stroke-dashoffset: 260;
+  filter: drop-shadow(0 10px 20px rgba(120, 80, 180, 0.15));
+}
+
+.love-heart-path {
+  fill: rgba(214, 110, 180, 0.72);
+  opacity: 0;
+  transform-origin: 110px 82px;
+}
+
+.love-overlay.playing .love-ribbon-path {
+  animation: loveFold 920ms ease-out forwards;
+}
+
+.love-overlay.playing .love-heart-path {
+  animation: loveHeartPop 920ms ease-out forwards;
+}
+
+@keyframes loveFold {
+  0% {
+    stroke-dashoffset: 260;
+    opacity: 0.15;
+  }
+  40% {
+    opacity: 0.95;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.88;
+  }
+}
+
+@keyframes loveHeartPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.72) rotate(-10deg) translateY(7px);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.18) rotate(-4deg) translateY(0px);
+  }
+  100% {
+    opacity: 0.9;
+    transform: scale(1) rotate(0deg) translateY(0px);
+  }
 }
 
 .spark-layer {

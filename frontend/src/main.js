@@ -10,6 +10,7 @@ const beatOrb = document.querySelector("#beat-orb");
 const ambientToggleBtn = document.querySelector("#ambient-toggle");
 const copyLinkBtn = document.querySelector("#copy-link");
 const timelineBar = document.querySelector("#timeline-bar");
+const loveOverlay = document.querySelector("#love-overlay");
 const moodSelect = document.querySelector("#mood-select");
 const energyFill = document.querySelector("#energy-fill");
 const sparkLayer = document.querySelector("#spark-layer");
@@ -27,6 +28,7 @@ let beatIntervalMs = Math.round(60000 / 90);
 let sessionStartAt = 0;
 let lastBeatIndex = -1;
 let lastPairMoment = 0;
+let lastLoveMoment = 0;
 const activeLoops = new Set();
 let energy = 0;
 let ambientEnabled = false;
@@ -61,6 +63,17 @@ function flash() {
 function bumpBeat() {
   beatOrb.classList.remove("beat-hit");
   requestAnimationFrame(() => beatOrb.classList.add("beat-hit"));
+}
+
+function triggerLoveFold() {
+  if (!loveOverlay) return;
+  const now = Date.now();
+  if (now - lastLoveMoment < 1600) return;
+  lastLoveMoment = now;
+  loveOverlay.classList.remove("playing");
+  // Force reflow so the animation restarts reliably.
+  void loveOverlay.offsetWidth;
+  loveOverlay.classList.add("playing");
 }
 
 function setEnergy(next) {
@@ -216,6 +229,7 @@ function connectAndJoin(targetRoomId) {
         const t = Date.now();
         if (t - lastPairMoment < 800) {
           setReaction("Nice! That felt like a duet.");
+          triggerLoveFold();
         } else {
           setReaction(`They played ${msg.eventName}. Your turn?`);
         }
