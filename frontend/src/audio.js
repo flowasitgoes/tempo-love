@@ -27,6 +27,48 @@ function tone(freq, type, when, duration) {
   osc.stop(when + duration);
 }
 
+function kick(when) {
+  const ctx = ensureCtx();
+  const osc = ctx.createOscillator();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(140, when);
+  osc.frequency.exponentialRampToValueAtTime(42, when + 0.12);
+  const gain = envelope(ctx, when, 0.16, 0.28);
+  osc.connect(gain);
+  osc.start(when);
+  osc.stop(when + 0.18);
+}
+
+function hat(when) {
+  const ctx = ensureCtx();
+  const noise = ctx.createBufferSource();
+  const length = Math.max(1, Math.floor(ctx.sampleRate * 0.08));
+  const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < length; i += 1) data[i] = (Math.random() * 2 - 1) * 0.22;
+  noise.buffer = buffer;
+
+  const hp = ctx.createBiquadFilter();
+  hp.type = "highpass";
+  hp.frequency.setValueAtTime(6500, when);
+  hp.connect(ctx.destination);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, when);
+  gain.gain.exponentialRampToValueAtTime(0.09, when + 0.004);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.06);
+  gain.connect(hp);
+
+  noise.connect(gain);
+  noise.start(when);
+}
+
+function clap(when) {
+  hat(when);
+  hat(when + 0.018);
+  hat(when + 0.034);
+}
+
 function shimmer(when) {
   const ctx = ensureCtx();
   const filter = ctx.createBiquadFilter();
@@ -119,6 +161,36 @@ export function playEvent(eventName, when) {
   if (eventName === "pulse") {
     tone(220, "sine", when, 0.28);
     tone(110, "triangle", when, 0.22);
+    return;
+  }
+
+  if (eventName === "kick") {
+    kick(when);
+    return;
+  }
+
+  if (eventName === "hat") {
+    hat(when);
+    return;
+  }
+
+  if (eventName === "clap") {
+    clap(when);
+    return;
+  }
+
+  if (eventName === "loveChord") {
+    tone(261.6, "triangle", when, 0.34);
+    tone(329.6, "sine", when + 0.02, 0.3);
+    tone(392, "sine", when + 0.04, 0.28);
+    shimmer(when + 0.03);
+    return;
+  }
+
+  if (eventName === "love") {
+    tone(523, "sine", when, 0.14);
+    tone(659, "triangle", when + 0.06, 0.14);
+    tone(784, "sine", when + 0.12, 0.16);
     return;
   }
 

@@ -72,6 +72,15 @@ function nearestFutureBeat(now, sessionStartAt, beatIntervalMs) {
   return sessionStartAt + beatsPassed * beatIntervalMs;
 }
 
+function nearestFutureDivision(now, sessionStartAt, beatIntervalMs, subdivision = 1) {
+  const safeSubdivision = Math.max(1, Math.min(8, Math.floor(subdivision)));
+  const unitMs = beatIntervalMs / safeSubdivision;
+  if (now <= sessionStartAt) return sessionStartAt;
+  const elapsed = now - sessionStartAt;
+  const unitsPassed = Math.ceil(elapsed / unitMs);
+  return sessionStartAt + unitsPassed * unitMs;
+}
+
 const server = http.createServer((req, res) => {
   if (req.url === "/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
@@ -145,8 +154,14 @@ wss.on("connection", (ws) => {
       if (!room) return;
 
       const eventName = String(data.eventName || "pulse");
+      const subdivision = Number(data.subdivision) || 1;
       const now = Date.now();
-      const scheduledAt = nearestFutureBeat(now + 120, room.sessionStartAt, room.beatIntervalMs);
+      const scheduledAt = nearestFutureDivision(
+        now + 120,
+        room.sessionStartAt,
+        room.beatIntervalMs,
+        subdivision,
+      );
 
       broadcast(room, {
         type: "trigger_scheduled",

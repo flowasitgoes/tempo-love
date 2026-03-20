@@ -52,11 +52,19 @@
           <button class="loop-toggle" data-loop="rain">Loop Rain</button>
         </div>
 
+        <div class="house-row">
+          <button class="house-toggle" data-house="kick">4x Kick</button>
+          <button class="house-toggle" data-house="clap">Clap 2/4</button>
+          <button class="house-toggle" data-house="hat">Offbeat Hat</button>
+          <button class="house-toggle" data-house="loveChord">Love Chord</button>
+        </div>
+
         <div class="pad-grid extra-pad-grid">
           <button class="pad alt" data-sound="bloom">Bloom <span>4</span></button>
           <button class="pad alt" data-sound="drift">Drift <span>5</span></button>
           <button class="pad alt" data-sound="spark">Spark <span>6</span></button>
         </div>
+        <button id="love-send" class="love-send" type="button">Send Love ❤</button>
 
         <div class="beat-wrap" aria-hidden="true">
           <div id="beat-orb" class="beat-orb"></div>
@@ -64,25 +72,11 @@
         <div class="timeline" aria-hidden="true">
           <div id="timeline-bar" class="timeline-bar"></div>
         </div>
-        <div id="love-overlay" class="love-overlay" aria-hidden="true">
-          <svg viewBox="0 0 220 120" class="love-svg">
-            <path
-              id="love-ribbon-path"
-              class="love-ribbon-path"
-              d="M20 88 C55 28 165 28 200 88"
-            />
-            <path
-              id="love-heart-path"
-              class="love-heart-path"
-              d="M110 100
-                 C105 92 90 86 86 76
-                 C82 66 92 58 101 62
-                 C106 64 108 69 110 72
-                 C112 69 114 64 119 62
-                 C128 58 138 66 134 76
-                 C130 86 115 92 110 100 Z"
-            />
-          </svg>
+        <div id="fold-stage" class="fold-stage" aria-hidden="true">
+          <div class="fold-line"></div>
+          <div class="fold-line"></div>
+          <div class="fold-line"></div>
+          <div class="fold-line"></div>
         </div>
         <div id="spark-layer" class="spark-layer" aria-hidden="true"></div>
       </section>
