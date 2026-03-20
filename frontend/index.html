@@ -35,6 +35,11 @@
           <p id="reaction" class="reaction">Press 1 / 2 / 3 to play.</p>
         </div>
 
+        <div class="control-row">
+          <button id="ambient-toggle" class="control-toggle" type="button">Ambient: Off</button>
+          <button id="copy-link" class="control-toggle ghost" type="button">Copy room link</button>
+        </div>
+
         <div class="pad-grid">
           <button class="pad" data-sound="pulse">Pulse <span>1</span></button>
           <button class="pad" data-sound="glow">Glow <span>2</span></button>
@@ -55,6 +60,9 @@
 
         <div class="beat-wrap" aria-hidden="true">
           <div id="beat-orb" class="beat-orb"></div>
+        </div>
+        <div class="timeline" aria-hidden="true">
+          <div id="timeline-bar" class="timeline-bar"></div>
         </div>
         <div id="spark-layer" class="spark-layer" aria-hidden="true"></div>
       </section>

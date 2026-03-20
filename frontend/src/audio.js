@@ -68,6 +68,54 @@ export function playEvent(eventName, when) {
     return;
   }
 
+  if (eventName === "ambient") {
+    // Soft pad: calm bass + airy mid, very low gain.
+    const duration = 0.38;
+
+    const osc1 = ctx.createOscillator();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(110, when);
+    osc1.detune.setValueAtTime(-6, when);
+    const g1 = envelope(ctx, when, duration, 0.05);
+    osc1.connect(g1);
+    osc1.start(when);
+    osc1.stop(when + duration);
+
+    const osc2 = ctx.createOscillator();
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(165, when);
+    osc2.detune.setValueAtTime(4, when);
+    const g2 = envelope(ctx, when, duration + 0.04, 0.04);
+    osc2.connect(g2);
+    osc2.start(when + 0.01);
+    osc2.stop(when + duration + 0.04);
+
+    // Air breath (very subtle filtered noise).
+    const filter = ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(900, when);
+    filter.frequency.exponentialRampToValueAtTime(1400, when + 0.22);
+    filter.connect(ctx.destination);
+
+    const noise = ctx.createBufferSource();
+    const length = Math.max(1, Math.floor(ctx.sampleRate * 0.18));
+    const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i += 1) data[i] = (Math.random() * 2 - 1) * 0.25;
+    noise.buffer = buffer;
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.0001, when);
+    noiseGain.gain.exponentialRampToValueAtTime(0.03, when + 0.03);
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, when + 0.18);
+
+    noise.connect(noiseGain);
+    noiseGain.connect(filter);
+    noise.start(when);
+
+    return;
+  }
+
   if (eventName === "pulse") {
     tone(220, "sine", when, 0.28);
     tone(110, "triangle", when, 0.22);

@@ -7,6 +7,9 @@ const statusEl = document.querySelector("#status");
 const metaEl = document.querySelector("#meta");
 const reactionEl = document.querySelector("#reaction");
 const beatOrb = document.querySelector("#beat-orb");
+const ambientToggleBtn = document.querySelector("#ambient-toggle");
+const copyLinkBtn = document.querySelector("#copy-link");
+const timelineBar = document.querySelector("#timeline-bar");
 const moodSelect = document.querySelector("#mood-select");
 const energyFill = document.querySelector("#energy-fill");
 const sparkLayer = document.querySelector("#spark-layer");
@@ -26,6 +29,7 @@ let lastBeatIndex = -1;
 let lastPairMoment = 0;
 const activeLoops = new Set();
 let energy = 0;
+let ambientEnabled = false;
 
 function setStatus(text) {
   statusEl.textContent = text;
@@ -106,6 +110,26 @@ function toggleLoop(eventName, btn) {
   boostEnergy(10);
 }
 
+function setAmbientEnabled(enabled) {
+  ambientEnabled = Boolean(enabled);
+  if (ambientToggleBtn) {
+    ambientToggleBtn.textContent = ambientEnabled ? "Ambient: On" : "Ambient: Off";
+    ambientToggleBtn.classList.toggle("active", ambientEnabled);
+  }
+}
+
+function doCopyRoomLink() {
+  if (!roomId) {
+    setReaction("Join a room first, then share the link.");
+    return;
+  }
+  const url = `${location.origin}${location.pathname}?room=${encodeURIComponent(roomId)}`;
+  navigator.clipboard
+    .writeText(url)
+    .then(() => setReaction("Room link copied. Invite gently."))
+    .catch(() => setReaction("Copy failed. You can share the room name instead."));
+}
+
 function doPing() {
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
   const clientSentAt = Date.now();
@@ -138,10 +162,12 @@ function connectAndJoin(targetRoomId) {
 
     if (msg.type === "joined_room") {
       roomId = msg.roomId;
+      history.replaceState(null, "", `?room=${encodeURIComponent(roomId)}`);
       members = msg.members;
       tempo = msg.tempo || tempo;
       beatIntervalMs = msg.beatIntervalMs || beatIntervalMs;
       sessionStartAt = msg.sessionStartAt || Date.now();
+      setAmbientEnabled(msg.ambientEnabled);
       setStatus(members === 2 ? "You are in sync together." : "Waiting for one more person...");
       setMeta();
       setReaction("Try a tap, then turn on a loop.");
@@ -161,6 +187,14 @@ function connectAndJoin(targetRoomId) {
       return;
     }
 
+    if (msg.type === "ambient_update") {
+      setAmbientEnabled(msg.enabled);
+      setReaction(
+        msg.enabled ? "Ambient is on. Breathe together." : "Ambient off. Focus on your taps.",
+      );
+      return;
+    }
+
     if (msg.type === "trigger_scheduled") {
       const nowMs = Date.now();
       const when = serverToAudioTime({
@@ -170,6 +204,11 @@ function connectAndJoin(targetRoomId) {
         audioNowSec: getAudioNow(),
       });
       playEvent(msg.eventName, when);
+      if (msg.eventName === "ambient") {
+        boostEnergy(2);
+        return;
+      }
+
       flash();
       spawnSpark();
       boostEnergy(10);
@@ -215,6 +254,22 @@ for (const btn of loopToggles) {
   });
 }
 
+ambientToggleBtn.addEventListener("click", () => {
+  unlockAudio();
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    setReaction("Join a room first to turn ambient on.");
+    return;
+  }
+  const next = !ambientEnabled;
+  setAmbientEnabled(next);
+  ws.send(JSON.stringify({ type: "toggle_ambient", enabled: next }));
+  setReaction(next ? "Ambient on. Breathe together." : "Ambient off.");
+});
+
+copyLinkBtn.addEventListener("click", () => {
+  doCopyRoomLink();
+});
+
 window.addEventListener("keydown", (e) => {
   if (e.key === "1") sendTrigger("pulse");
   if (e.key === "2") sendTrigger("glow");
@@ -233,6 +288,12 @@ setInterval(() => {
   if (!sessionStartAt || !roomId) return;
   const now = Date.now() + clockOffsetMs;
   const beat = Math.floor((now - sessionStartAt) / beatIntervalMs);
+
+  if (timelineBar) {
+    const cycle = ((beat % 16) + 16) % 16;
+    timelineBar.style.width = `${(cycle / 16) * 100}%`;
+  }
+
   if (beat !== lastBeatIndex) {
     lastBeatIndex = beat;
     bumpBeat();
@@ -250,3 +311,10 @@ setMeta();
 setInterval(doPing, 5000);
 setStatus("Enter a room to begin.");
 setReaction("Press 1 to 6, or turn on loops.");
+
+const urlParams = new URLSearchParams(location.search);
+const presetRoom = urlParams.get("room");
+if (presetRoom) {
+  roomInput.value = presetRoom;
+  setReaction(`Room ${presetRoom} prefilled. Press Join when ready.`);
+}

@@ -16,7 +16,39 @@ function getOrCreateRoom(roomId) {
       tempo: TEMPO,
       beatIntervalMs: BEAT_INTERVAL_MS,
       sessionStartAt: Date.now() + START_DELAY_MS,
+      ambientEnabled: false,
+      lastAmbientScheduledBeatIndex: null,
+      tickerIntervalId: null,
     });
+
+    // Per-room lightweight ticker: the server stays the single clock source for ambient.
+    const room = rooms.get(roomId);
+    const tickMs = Math.max(60, Math.round(room.beatIntervalMs / 6));
+    room.tickerIntervalId = setInterval(() => {
+      if (!rooms.has(roomId)) return;
+      if (!room.ambientEnabled) return;
+
+      const now = Date.now();
+      const scheduledAt = nearestFutureBeat(now + 80, room.sessionStartAt, room.beatIntervalMs);
+      const scheduledBeatIndex = Math.max(
+        0,
+        Math.round((scheduledAt - room.sessionStartAt) / room.beatIntervalMs),
+      );
+
+      if (room.lastAmbientScheduledBeatIndex === scheduledBeatIndex) return;
+      room.lastAmbientScheduledBeatIndex = scheduledBeatIndex;
+
+      // Breathing calm: ambient every other beat.
+      if (scheduledBeatIndex % 2 === 0) {
+        broadcast(room, {
+          type: "trigger_scheduled",
+          eventName: "ambient",
+          from: "server",
+          scheduledAt,
+          serverNow: now,
+        });
+      }
+    }, tickMs);
   }
   return rooms.get(roomId);
 }
@@ -94,6 +126,7 @@ wss.on("connection", (ws) => {
         tempo: room.tempo,
         beatIntervalMs: room.beatIntervalMs,
         sessionStartAt: room.sessionStartAt,
+        ambientEnabled: room.ambientEnabled,
         serverNow: Date.now(),
       });
 
@@ -123,6 +156,22 @@ wss.on("connection", (ws) => {
         serverNow: now,
       });
     }
+
+    if (data.type === "toggle_ambient") {
+      if (!ws.roomId) return;
+      const room = rooms.get(ws.roomId);
+      if (!room) return;
+
+      room.ambientEnabled = Boolean(data.enabled);
+      room.lastAmbientScheduledBeatIndex = null;
+
+      broadcast(room, {
+        type: "ambient_update",
+        roomId: ws.roomId,
+        enabled: room.ambientEnabled,
+        serverNow: Date.now(),
+      });
+    }
   });
 
   ws.on("close", () => {
@@ -132,6 +181,7 @@ wss.on("connection", (ws) => {
     room.clients.delete(ws);
 
     if (room.clients.size === 0) {
+      if (room.tickerIntervalId) clearInterval(room.tickerIntervalId);
       rooms.delete(ws.roomId);
       return;
     }
